@@ -1,0 +1,64 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="web-socket" attributes="url message auto handleAs">
+    <script>
+        Polymer('web-socket', {
+            ws: null,
+            url: '',
+            auto: false,
+            handleAs: 'text',
+
+            wsOnOpen: function() {
+                this.fire('open');
+                this.autoGo();
+            },
+
+            wsOnMessage: function(e) {
+                if (this.handleAs == 'json') {
+                    this.fire('message', JSON.parse(e.data));
+                } else {
+                    this.fire('message', e.data);
+                }
+            },
+
+            wsOnClose: function() {
+                this.fire('close');
+            },
+
+            wsOnError: function(e) {
+                this.fire('error', e);
+            },
+
+            initialiseWebSocket: function() {
+                this.ws = new WebSocket(this.url);
+
+                this.ws.onopen = this.wsOnOpen.bind(this);
+                this.ws.onmessage = this.wsOnMessage.bind(this);
+                this.ws.onclose = this.wsOnClose.bind(this);
+                this.ws.onerror = this.wsOnError.bind(this);
+            },
+
+            urlChanged: function() {
+                this.initialiseWebSocket();
+            },
+
+            messageChanged: function() {
+                this.autoGo();
+            },
+
+            autoGo: function() {
+                if (this.auto) {
+                    this.go();
+                }
+            },
+
+            go: function() {
+                if (this.ws == null || (this.ws.readyState != 0 && this.ws.readyState != 1)) {
+                    this.initialiseWebSocket();
+                } else if (this.ws.readyState == 1) {
+                    this.ws.send(JSON.stringify(this.message));
+                }
+            }
+        })
+    </script>
+</polymer-element>
