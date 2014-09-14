@@ -1,12 +1,13 @@
 <link rel="import" href="../polymer/polymer.html">
 
-<polymer-element name="web-socket" attributes="url message auto handleAs">
+<polymer-element name="web-socket" attributes="url message auto handleAs sendAs">
     <script>
         Polymer('web-socket', {
             ws: null,
             url: '',
             auto: false,
             handleAs: 'text',
+	    sendAs: 'text',
 
             wsOnOpen: function() {
                 this.fire('open');
@@ -56,7 +57,11 @@
                 if (this.ws == null || (this.ws.readyState != 0 && this.ws.readyState != 1)) {
                     this.initialiseWebSocket();
                 } else if (this.ws.readyState == 1 && this.message != undefined) {
-                    this.ws.send(JSON.stringify(this.message));
+		    if (this.sendAs == "json") {
+                        this.ws.send(JSON.stringify(this.message));
+                    } else {
+		        this.ws.send(this.message);
+                    }
                 }
             }
         })
